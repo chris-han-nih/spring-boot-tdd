@@ -8,22 +8,23 @@ import io.mockk.verify
 import org.springframework.test.web.reactive.server.WebTestClient
 
 class UserControllerTest : DescribeSpec({
-  
-  val userService = mockk<UserService>()
-  every { userService.getUser() } returns User("Chris")
-  
-  val webTestClient = WebTestClient.bindToController(UserController(
-    userService
-  )).build()
-  
+
   describe("getUser") {
-    val performRequest = { webTestClient.get().uri("/user").exchange() }
     
+    val userService = mockk<UserService>()
+    every { userService.getUser() } returns User("Chris")
+    
+    val webTestClient = WebTestClient.bindToController(UserController(
+      userService
+    )).build()
+    
+    val performRequest = { webTestClient.get().uri("/user").exchange() }
+
     context("저장된 데이터가 Chris 한명인 상황에서 요청한 경우") {
       val response = performRequest()
-      
+
       verify { userService.getUser() }
-      
+
       it("요청은 성공한다") {
         response.expectStatus().isOk
       }
