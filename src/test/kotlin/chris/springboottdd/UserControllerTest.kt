@@ -1,13 +1,13 @@
 package chris.springboottdd
 
 import chris.springboottdd.model.User
-import io.kotest.core.spec.style.DescribeSpec
+import io.kotest.core.spec.style.*
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.verify
 import org.springframework.test.web.reactive.server.WebTestClient
 
-class UserControllerTest : DescribeSpec({
+class UserControllerTestWithDescribeSpec : DescribeSpec({
 
   describe("getUser") {
     
@@ -32,6 +32,67 @@ class UserControllerTest : DescribeSpec({
         response.expectBody().json("""{"name":"Chris"}""")
       }
     }
+  }
+})
+
+class UserControllerTestWithBehaviorSpec : BehaviorSpec({
+
+  lateinit var userService: UserService
+  lateinit var webTestClient: WebTestClient
+
+  beforeTest {
+    // Mock 서비스 설정
+    userService = mockk<UserService>()
+    every { userService.getUser() } returns User("Chris")
+
+    // 테스트를 위한 WebTestClient 설정
+    webTestClient = WebTestClient.bindToController(UserController(userService)).build()
+  }
+
+  given("저장된 데이터가 Chris 한명인 상황에서") {
+    `when`("GET 요청이 /user로 보내진다") {
+      val response = webTestClient.get().uri("/user").exchange()
+
+      then("요청은 성공해야 한다") {
+        response.expectStatus().isOk
+      }
+
+      then("반환 값은 Chris이어야 한다") {
+        response.expectBody().json("""{"name":"Chris"}""")
+      }
+    }
+  }
+})
+
+class UserControllerTestWithFunSpec : FunSpec({
+  val userService = mockk<UserService>()
+  every { userService.getUser() } returns User("Chris")
+
+  val webTestClient = WebTestClient.bindToController(UserController(
+    userService
+  )).build()
+
+  test("저장된 데이터가 Chris 한명인 상황에서 요청한 경우") {
+    val response = webTestClient.get().uri("/user").exchange()
+
+    response.expectStatus().isOk
+    response.expectBody().json("""{"name":"Chris"}""")
+  }
+})
+
+class UserControllerTestWithShouldSpec : ShouldSpec({
+  val userService = mockk<UserService>()
+  every { userService.getUser() } returns User("Chris")
+
+  val webTestClient = WebTestClient.bindToController(UserController(
+    userService
+  )).build()
+
+  should("저장된 데이터가 Chris 한명인 상황에서 요청한 경우") {
+    val response = webTestClient.get().uri("/user").exchange()
+
+    response.expectStatus().isOk
+    response.expectBody().json("""{"name":"Chris"}""")
   }
 })
 
