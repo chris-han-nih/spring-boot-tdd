@@ -53,6 +53,7 @@ class UserControllerTestWithBehaviorSpec : BehaviorSpec({
     `when`("GET 요청이 /user로 보내진다") {
       val response = webTestClient.get().uri("/user").exchange()
 
+      verify { userService.getUser() }
       then("요청은 성공해야 한다") {
         response.expectStatus().isOk
       }

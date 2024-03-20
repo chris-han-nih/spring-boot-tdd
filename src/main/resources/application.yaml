@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: spring-boot-tdd
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    url: jdbc:mysql://localhost/tdd
+    username: root
+    password: 1q2w3e4r
+    jpa:
+      open-in-view: false
+      hibernate:
+        ddl-auto: update
