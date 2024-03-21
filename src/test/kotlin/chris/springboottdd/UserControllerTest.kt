@@ -10,13 +10,18 @@ import org.springframework.test.web.reactive.server.WebTestClient
 class UserControllerTestWithDescribeSpec : DescribeSpec({
 
   describe("getUser") {
-    
-    val userService = mockk<UserService>()
-    every { userService.getUser() } returns User("Chris")
-    
-    val webTestClient = WebTestClient.bindToController(UserController(
-      userService
-    )).build()
+
+    lateinit var userService: UserService
+    lateinit var webTestClient: WebTestClient
+
+    beforeContainer {
+      // Mock 서비스 설정
+      userService = mockk<UserService>()
+      every { userService.getUser() } returns User("Chris")
+
+      // 테스트를 위한 WebTestClient 설정
+      webTestClient = WebTestClient.bindToController(UserController(userService)).build()
+    }
     
     val performRequest = { webTestClient.get().uri("/user").exchange() }
 
@@ -25,10 +30,10 @@ class UserControllerTestWithDescribeSpec : DescribeSpec({
 
       verify { userService.getUser() }
 
-      it("요청은 성공한다") {
+      it("요청은 성공해야 한다") {
         response.expectStatus().isOk
       }
-      it("반환 값은 Chris이다") {
+      it("반환 값은 Chris이어야 한다") {
         response.expectBody().json("""{"name":"Chris"}""")
       }
     }
@@ -40,20 +45,19 @@ class UserControllerTestWithBehaviorSpec : BehaviorSpec({
   lateinit var userService: UserService
   lateinit var webTestClient: WebTestClient
 
-  beforeTest {
-    // Mock 서비스 설정
+  beforeContainer {
     userService = mockk<UserService>()
     every { userService.getUser() } returns User("Chris")
 
-    // 테스트를 위한 WebTestClient 설정
     webTestClient = WebTestClient.bindToController(UserController(userService)).build()
   }
 
-  given("저장된 데이터가 Chris 한명인 상황에서") {
+  given("저장된 데이터가 Chris 한명인 상황에서 요청한 경우") {
     `when`("GET 요청이 /user로 보내진다") {
       val response = webTestClient.get().uri("/user").exchange()
 
       verify { userService.getUser() }
+
       then("요청은 성공해야 한다") {
         response.expectStatus().isOk
       }
@@ -66,12 +70,16 @@ class UserControllerTestWithBehaviorSpec : BehaviorSpec({
 })
 
 class UserControllerTestWithFunSpec : FunSpec({
-  val userService = mockk<UserService>()
-  every { userService.getUser() } returns User("Chris")
+  lateinit var userService: UserService
+  lateinit var webTestClient: WebTestClient
 
-  val webTestClient = WebTestClient.bindToController(UserController(
-    userService
-  )).build()
+//  beforeContainer { FunSpec에서는 beforeContainer를 사용할 수 없다. }
+  beforeTest {
+    userService = mockk<UserService>()
+    every { userService.getUser() } returns User("Chris")
+
+    webTestClient = WebTestClient.bindToController(UserController(userService)).build()
+  }
 
   test("저장된 데이터가 Chris 한명인 상황에서 요청한 경우") {
     val response = webTestClient.get().uri("/user").exchange()
@@ -82,12 +90,17 @@ class UserControllerTestWithFunSpec : FunSpec({
 })
 
 class UserControllerTestWithShouldSpec : ShouldSpec({
-  val userService = mockk<UserService>()
-  every { userService.getUser() } returns User("Chris")
 
-  val webTestClient = WebTestClient.bindToController(UserController(
-    userService
-  )).build()
+  lateinit var userService: UserService
+  lateinit var webTestClient: WebTestClient
+
+//  beforeContainer { FunSpec에서는 beforeContainer를 사용할 수 없다. }
+  beforeSpec {
+    userService = mockk<UserService>()
+    every { userService.getUser() } returns User("Chris")
+
+    webTestClient = WebTestClient.bindToController(UserController(userService)).build()
+  }
 
   should("저장된 데이터가 Chris 한명인 상황에서 요청한 경우") {
     val response = webTestClient.get().uri("/user").exchange()
